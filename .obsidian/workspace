@@ -4,12 +4,12 @@
     "type": "split",
     "children": [
       {
-        "id": "8e879d4a2941492e",
+        "id": "569ee02ebee9a55f",
         "type": "leaf",
         "state": {
           "type": "markdown",
           "state": {
-            "file": "Windows Privilege Escalation.md",
+            "file": "Samba/Port 139 atau 445.md",
             "mode": "source"
           }
         }
@@ -68,7 +68,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Windows Privilege Escalation.md",
+                "file": "Samba/Port 139 atau 445.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -86,11 +86,15 @@
     "width": 300,
     "collapsed": true
   },
-  "active": "8e879d4a2941492e",
+  "active": "569ee02ebee9a55f",
   "lastOpenFiles": [
+    "Samba/Port 139 atau 445.md",
+    "Linux Privileges Escalation.md",
+    "Stuck.md",
+    "Windows Post-Exploitation.md",
+    "insecureGui.PNG",
     "Windows Privilege Escalation.md",
     "procmon.png",
-    "Windows Post-Exploitation.md",
     "README.md"
   ]
 }
