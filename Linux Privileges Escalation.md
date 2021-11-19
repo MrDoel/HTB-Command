@@ -11,7 +11,7 @@ Intinya nyari apakah versi kernel vuln. Cara ceknya
 Terus cari exploitnya -> Compile -> Run -> Boom
 
 # Checklist
-![[linux_privesc.jpg]]
+![Linux PrivEsc](linux_privesc.jpg)
 
 12. LD_PRELOAD
 13. PATH INJECTION
