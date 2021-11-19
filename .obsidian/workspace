@@ -9,7 +9,7 @@
         "state": {
           "type": "markdown",
           "state": {
-            "file": "Samba/Port 139 atau 445.md",
+            "file": "Linux Privileges Escalation.md",
             "mode": "source"
           }
         }
@@ -68,7 +68,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Samba/Port 139 atau 445.md",
+                "file": "Linux Privileges Escalation.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -88,13 +88,15 @@
   },
   "active": "569ee02ebee9a55f",
   "lastOpenFiles": [
-    "Samba/Port 139 atau 445.md",
     "Linux Privileges Escalation.md",
     "Stuck.md",
+    "Drupal.md",
+    "MySQL/Upload Shell VIa MYSQL Command.md",
+    "MySQL/Priv Esc Via UDF Function.md",
+    "FTP/Brute Force FTP.md",
+    "SSH/Restricted Shell.md",
+    "Samba/Port 139 atau 445.md",
     "Windows Post-Exploitation.md",
-    "insecureGui.PNG",
-    "Windows Privilege Escalation.md",
-    "procmon.png",
-    "README.md"
+    "insecureGui.PNG"
   ]
 }

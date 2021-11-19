@@ -1,3 +1,21 @@
+# Usefool Tools and links
+Cek Priv Esc
+https://github.com/sleventyeleven/linuxprivchecker
+
+Kalau stuck bisa kesini
+https://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation/
+
+# Kernel Exploit
+Intinya nyari apakah versi kernel vuln. Cara ceknya
+`uname -a`
+Terus cari exploitnya -> Compile -> Run -> Boom
+
+# Checklist
+![[linux_privesc.jpg]]
+
+12. LD_PRELOAD
+13. PATH INJECTION
+
 # Path Injection
 Path injection terjadi karena pemanggilan binary dengan akses root yang tidak menggunakan full path. Contoh pemangilan yang benar
 ```
@@ -25,7 +43,5 @@ whoami
 
 Ya jadi contohnya diatas, kita menambahkan $PATH direktori `/tmp` dimana diletakkan di awal, sehingga aplikasi yang tanpa full path tadi akan mencari pertama kali ke folder `tmp`
 
-# Kernel Exploit
-Intinya nyari apakah versi kernel vuln. Cara ceknya
-`uname -a`
-Terus cari exploitnya -> Compile -> Run -> Boom
+
+
