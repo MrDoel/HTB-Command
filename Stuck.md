@@ -22,3 +22,8 @@ OPTIONS /test/ HTTP/1.1
 Host: 192.168.1.10
 ```
 Latihan : SickOS
+
+## Reverse shell stuck? coba pakai port 443
+```
+nc -lvnp 443
+```

@@ -10,7 +10,7 @@
           "type": "markdown",
           "state": {
             "file": "Linux Privileges Escalation.md",
-            "mode": "preview"
+            "mode": "source"
           }
         }
       }
@@ -89,14 +89,14 @@
   "active": "569ee02ebee9a55f",
   "lastOpenFiles": [
     "Linux Privileges Escalation.md",
-    "Stuck.md",
-    "Drupal.md",
-    "MySQL/Upload Shell VIa MYSQL Command.md",
-    "MySQL/Priv Esc Via UDF Function.md",
-    "FTP/Brute Force FTP.md",
+    "Stabilize Shell Linux.md",
     "SSH/Restricted Shell.md",
-    "Samba/Port 139 atau 445.md",
-    "Windows Post-Exploitation.md",
-    "insecureGui.PNG"
+    "linux_privesc.jpg",
+    "SQL Injection.md",
+    "MySQL/Priv Esc Via UDF Function.md",
+    "Proxy Tunnel.md",
+    "Windows/Windows Privilege Escalation.md",
+    "Windows/Enable Wget Windows.md",
+    "Windows/Reverse Shell/Windows.md"
   ]
 }

