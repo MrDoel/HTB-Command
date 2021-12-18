@@ -9,7 +9,7 @@
         "state": {
           "type": "markdown",
           "state": {
-            "file": "Linux Privileges Escalation.md",
+            "file": "Windows/Windows Post-Exploitation.md",
             "mode": "source"
           }
         }
@@ -68,7 +68,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Linux Privileges Escalation.md",
+                "file": "Windows/Windows Post-Exploitation.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -88,15 +88,15 @@
   },
   "active": "569ee02ebee9a55f",
   "lastOpenFiles": [
+    "Windows/Windows Post-Exploitation.md",
+    "Windows/Windows Privilege Escalation.md",
+    "Windows/Reverse Shell/Windows.md",
+    "Windows/Enable Wget Windows.md",
+    "Port Knocking.md",
     "Linux Privileges Escalation.md",
     "Stabilize Shell Linux.md",
     "SSH/Restricted Shell.md",
     "linux_privesc.jpg",
-    "SQL Injection.md",
-    "MySQL/Priv Esc Via UDF Function.md",
-    "Proxy Tunnel.md",
-    "Windows/Windows Privilege Escalation.md",
-    "Windows/Enable Wget Windows.md",
-    "Windows/Reverse Shell/Windows.md"
+    "SQL Injection.md"
   ]
 }
