@@ -58,3 +58,9 @@ Misalnya untuk melakukan port knocking ditemukan bahwa kombinasinya adalah port 
 ```
 for p in 7000 666 8890; do nmap -n -v0 -Pn --max-retries 0 -p $p 192.168.1.11; done
 ```
+# Local File Inclusion to Port Knocking
+Terkadang kalah nemu bug LFI, kita bisa ngecek apakah dia menggunakan port knocking. Hal ini pernah terjadi pada mesin vulnhub DC-9. Caranya adalah dengan melakukan pengecekan pada file `/etc/knockd.conf`
+
+```
+../../../../../../../etc/knockd.conf
+```
