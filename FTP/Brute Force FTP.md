@@ -1,3 +1,12 @@
+# FTP Pentesting
+## Cek anonymous user
+```
+ftp 192.167.3423
+
+user : anonymous
+pass : anonymous / blank (bisa dikosongkan)
+```
+
 ## Jika menemukan list username, coba brute force
 Brute force username dan password dengan menggunakan wordlist yang sama. Cek apakah ada user yang menggunakan password sama dengan username
 ```

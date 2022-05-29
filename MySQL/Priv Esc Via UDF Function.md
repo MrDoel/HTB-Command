@@ -1,6 +1,9 @@
 # Privilege Escalation Via UDF Functions MySQL
 Pada MySQL, user bisa membuat custom functions. Hal ini dinamakan User Defined Function. Hal yang bisa jadi berbahaya adalah ketika UDF library dijalankan dengan akses root karena bisa menjadi celah priv esc
 
+Syarat untuk bisa melakukan ini adalah dengan mendapatkan akses root mysql
+
+
 ## Recon
 Jika kita menemukan mysql dijalankan dengan root. Maka ada kemungkinan kita bisa melakukan priv esc bilamana terdapat UDF Function. Cara ceknya 
 ```
@@ -13,8 +16,15 @@ $ locate udf
 /usr/lib/lib_mysqludf_sys.so
 ```
 
-Pastikan file library `lib_mysqludf_sys.so`  memiliki permission root
+Pastikan file library `lib_mysqludf_sys.so`  memiliki permission root, sebenarnya gak wajib ada library ini sih, kita lanjut aja ...
+
 Jika mendapatkan username dan password mysql, coba cek `mysql.func`
+
+```
+mysql -u root -p
+```
+
+
 ```
 SELECT * FROM mysql.func
 ```

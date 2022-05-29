@@ -9,7 +9,7 @@
         "state": {
           "type": "markdown",
           "state": {
-            "file": "LFI.md",
+            "file": "phpMyAdmin/Upload Shell.md",
             "mode": "source"
           }
         }
@@ -68,7 +68,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "LFI.md",
+                "file": "phpMyAdmin/Upload Shell.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -88,15 +88,15 @@
   },
   "active": "abe2108197d83529",
   "lastOpenFiles": [
-    "LFI.md",
-    "SMTP/Send Test Mail.md",
-    "SMTP/Python Auto Send Email With Backdoor.md",
-    "Pivoting/Port scan.md",
-    "L.md",
-    "linux_privesc.jpg",
+    "phpMyAdmin/Upload Shell.md",
+    "Untitled.md",
+    "Untitled 1.md",
     "Reverse Shell/Pentest Monkey.md",
-    "Proxy Tunnel.md",
-    "Pivoting/Pivoting Port.md",
-    "Stabilize Shell Linux.md"
+    "VENV Python Kali Linux.md",
+    "GPG Files.md",
+    "FTP/Brute Force FTP.md",
+    "Linux Privileges Escalation.md",
+    "MySQL/Priv Esc Via UDF Function.md",
+    "Tomcat.md"
   ]
 }
