@@ -27,3 +27,19 @@ Latihan : SickOS
 ```
 nc -lvnp 443
 ```
+
+## Stuck Initial Shell
+RECON RECON RECON
+
+Coba pakai dirb
+```
+dirb http://10.10.10.10
+```
+gunakan wordlist yang beda-beda
+
+Kalau dapat Bug File read bisa baca 
+```
+/home/user/.ssh/id_rsa
+/etc/passwd
+/var/backups/shadow.bak
+```
