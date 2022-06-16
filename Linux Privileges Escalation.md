@@ -10,8 +10,14 @@ Intinya nyari apakah versi kernel vuln. Cara ceknya
 `uname -a`
 Terus cari exploitnya -> Compile -> Run -> Boom
 
+# Cron Jobs
+Untuk cron jobs ini terkadang kita gak tau apakah ada atau tidak, nah cara untuk mengetahuinya bisa menggunakan tools pspy
+https://github.com/DominicBreuker/pspy
+
+Jadi tools ini akan melakukan monitoring, perintah-perintah apa saja yang dilajalankan oleh user lain termasuk root
+
 # Checklist
-![Linux PrivEsc](linux_privesc.jpg)
+![[linux_privesc.jpg]]
 
 12. LD_PRELOAD
 13. PATH INJECTION
@@ -61,7 +67,7 @@ cp /bin/bash .
 chmod +s bash
 ```
 
-Lalu pada victim maching:
+Lalu pada victim machine:
 ```
 cd /home/deon
 ./bash -p
@@ -108,3 +114,11 @@ ps aux | grep andy
 ```
 
 Nah jika ada maka tes proses/aplikasi yang dijalankan apakah ada RCE
+
+## Another Reference
+### xhxBrofessor
+![Linux Priv Esc 2](https://github.com/hxhBrofessor/PrivEsc-MindMap/raw/main/Linux-Privesc.JPG)
+
+### Conda
+
+![Linux PrivEsc](https://github.com/C0nd4/OSCP-Priv-Esc/blob/main/images/Linux%20Privilege%20Escalation.png?raw=true)

